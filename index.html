@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Infopark → Kelenföld villamos</title>
+<title>Infopark villamos kijelző</title>
 <style>
     body {
         font-family: -apple-system, BlinkMacSystemFont, sans-serif;
@@ -38,8 +38,15 @@
         text-align: center;
     }
 
-    #list {
-        margin-top: 20px;
+    h2 {
+        font-size: 20px;
+        margin-top: 25px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .list {
+        margin-top: 10px;
         font-size: 20px;
         line-height: 1.6;
     }
@@ -56,7 +63,7 @@
     }
 
     .label {
-        font-size: 18px; /* 2 egységgel nagyobb */
+        font-size: 18px;
         color: #d35400;
         margin-left: 10px;
         font-weight: 700;
@@ -76,29 +83,36 @@
     <img src="tram.jpg" alt="Tram header">
 </div>
 
-<h1>🚋 Infopark → Kelenföld</h1>
+<h1>🚋 Infopark villamos kijelző</h1>
 
-<div id="list">Betöltés…</div>
+<h2>Infopark → Kelenföld</h2>
+<div id="list-kelenfold" class="list">Betöltés…</div>
+
+<h2>Infopark → Bécsi út</h2>
+<div id="list-becsi" class="list">Betöltés…</div>
+
 <div class="updated" id="updated"></div>
 
 <script>
-async function load() {
-    const url = "https://go.bkk.hu/api/query/v1/ws/otp/api/where/arrivals-and-departures-for-stop.json?stopId=BKK_066451&minutesBefore=0&minutesAfter=30&key=7d985771-b08b-4347-a786-cb995e88bd3e";
+async function loadDirection(stopId, elementId) {
+    const url =
+      "https://go.bkk.hu/api/query/v1/ws/otp/api/where/arrivals-and-departures-for-stop.json?stopId="
+      + stopId +
+      "&minutesBefore=0&minutesAfter=30&key=7d985771-b08b-4347-a786-cb995e88bd3e";
 
     try {
         const res = await fetch(url);
         const json = await res.json();
 
         const stopTimes = json.data.entry.stopTimes;
-
         const now = Date.now() / 1000;
-        const list = document.getElementById("list");
+        const list = document.getElementById(elementId);
         list.innerHTML = "";
 
         const arrivals = stopTimes
             .map(t => t.predictedArrivalTime)
             .sort((a, b) => a - b)
-            .slice(0, 3); // csak a következő 3 villamos
+            .slice(0, 2); // csak 2 villamos
 
         arrivals.forEach((ts, index) => {
             const diff = Math.round((ts - now) / 60);
@@ -107,7 +121,6 @@ async function load() {
             const mm = String(date.getMinutes()).padStart(2, "0");
 
             let label = "";
-
             if (index === 0) {
                 if (diff <= 2) label = "Siess";
                 else if (diff >= 3 && diff <= 5) label = "Nemsokára érkezik";
@@ -122,16 +135,22 @@ async function load() {
             list.appendChild(div);
         });
 
-        document.getElementById("updated").textContent =
-            "Frissítve: " + new Date().toLocaleTimeString("hu-HU");
-
     } catch (e) {
-        document.getElementById("list").innerHTML = "Hiba történt az adatok lekérésekor.";
+        document.getElementById(elementId).innerHTML =
+            "Hiba történt az adatok lekérésekor.";
     }
 }
 
-load();
-setInterval(load, 20000);
+async function loadAll() {
+    await loadDirection("BKK_066451", "list-kelenfold"); // Kelenföld irány
+    await loadDirection("BKK_066452", "list-becsi");      // Bécsi út irány
+
+    document.getElementById("updated").textContent =
+        "Frissítve: " + new Date().toLocaleTimeString("hu-HU");
+}
+
+loadAll();
+setInterval(loadAll, 20000);
 </script>
 
 </body>
