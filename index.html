@@ -56,10 +56,10 @@
     }
 
     .label {
-        font-size: 14px;
+        font-size: 18px; /* 2 egységgel nagyobb */
         color: #d35400;
         margin-left: 10px;
-        font-weight: 600;
+        font-weight: 700;
     }
 
     .updated {
@@ -98,7 +98,7 @@ async function load() {
         const arrivals = stopTimes
             .map(t => t.predictedArrivalTime)
             .sort((a, b) => a - b)
-            .slice(0, 5);
+            .slice(0, 3); // csak a következő 3 villamos
 
         arrivals.forEach((ts, index) => {
             const diff = Math.round((ts - now) / 60);
